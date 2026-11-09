@@ -24,7 +24,7 @@ export default function ExpenseCard({ expense }: ExpenseCardProps) {
       />
 
       <View style={styles.details}>
-        <Text style={styles.name} numberOfLines={2}>
+        <Text style={styles.name} numberOfLines={2} ellipsizeMode="tail">
           {expense.name}
         </Text>
         <Text style={styles.info} numberOfLines={1}>
@@ -47,19 +47,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'stretch',
-    gap: 10,
+    gap: 8,
     paddingHorizontal: 12,
     paddingVertical: 14,
     backgroundColor: '#FFFFFF',
-    borderBottomColor: '#E5E5E5',
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderRadius: 12,
+    borderColor: '#E5E5E5',
+    borderWidth: StyleSheet.hairlineWidth,
   },
   pressed: {
     opacity: 0.6,
   },
   image: {
-    width: 56,
-    height: 56,
+    width: 64,
+    height: 64,
     flexShrink: 0,
     borderRadius: 8,
     backgroundColor: '#F2F2F2',
