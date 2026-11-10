@@ -5,7 +5,6 @@ import ExpenseCard from '@/components/ExpenseCard';
 import { FontSize, Radius, Spacing } from '@/constants/theme';
 import { expenses } from '@/data/expenses';
 import { useTheme } from '@/hooks/use-theme';
-import type { ExpenseCategory } from '@/types';
 
 export default function HomeScreen() {
   const theme = useTheme();
@@ -14,15 +13,12 @@ export default function HomeScreen() {
   const columns = width >= 900 ? 3 : width >= 600 ? 2 : 1;
   const cardWidth = (width - 2 * Spacing.md - (columns - 1) * Spacing.md) / columns;
   const totalSpending = expenses.reduce((total, expense) => total + expense.amount, 0);
-  const categories = expenses.reduce(
-    (unique, expense) => unique.add(expense.category),
-    new Set<ExpenseCategory>(),
-  );
+  const categoryCount = new Set(expenses.map(expense => expense.category)).size;
   const average = expenses.length ? totalSpending / expenses.length : 0;
   const summaries = [
     { label: 'Expenses', value: String(expenses.length) },
     { label: 'Average (KM)', value: average.toFixed(2) },
-    { label: 'Categories', value: String(categories.size) },
+    { label: 'Categories', value: String(categoryCount) },
   ];
 
   return (
@@ -85,7 +81,7 @@ const styles = StyleSheet.create({
   },
   totalLabel: { fontSize: FontSize.body },
   totalAmount: { fontSize: FontSize.hero, fontWeight: '700', fontVariant: ['tabular-nums'] },
-  summaryRow: { flexDirection: 'row', gap: Spacing.sm },
+  summaryRow: { flexDirection: 'row', gap: Spacing.sm, width: '100%' },
   summaryBox: {
     flex: 1,
     minWidth: 0,
@@ -95,9 +91,10 @@ const styles = StyleSheet.create({
     borderCurve: 'continuous',
     borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  summaryValue: { fontSize: FontSize.title, fontWeight: '700', textAlign: 'center' },
-  summaryLabel: { fontSize: FontSize.small, textAlign: 'center' },
+  summaryValue: { fontSize: FontSize.title, fontWeight: '700', textAlign: 'center', maxWidth: '100%' },
+  summaryLabel: { fontSize: FontSize.small, textAlign: 'center', maxWidth: '100%' },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
