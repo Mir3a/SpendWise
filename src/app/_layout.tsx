@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router/stack';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 
 import { useTheme } from '@/hooks/use-theme';
@@ -13,6 +13,7 @@ export default function RootLayout() {
         screenOptions={{
           headerStyle: { backgroundColor: theme.background },
           headerTintColor: theme.text,
+          headerTitleStyle: { color: theme.text },
           contentStyle: { backgroundColor: theme.background },
         }}
       >
