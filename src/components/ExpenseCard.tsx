@@ -1,95 +1,97 @@
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
 
+import { FontSize, Radius, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import type { Expense } from '@/types';
 
 type ExpenseCardProps = {
   expense: Expense;
+  style?: StyleProp<ViewStyle>;
 };
 
-export default function ExpenseCard({ expense }: ExpenseCardProps) {
-  const amountLabel = `${expense.amount.toFixed(2)} KM`;
+export default function ExpenseCard({ expense, style }: ExpenseCardProps) {
+  const theme = useTheme();
+  const amountLabel = expense.amount.toFixed(2) + ' KM';
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${expense.name}, ${expense.category}, ${expense.date}, ${amountLabel}`}
+      accessibilityLabel={[expense.name, expense.category, expense.date, amountLabel].join(', ')}
       onPress={() => console.log('Open', expense.id)}
-      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+      style={({ pressed }) => [
+        styles.card,
+        { backgroundColor: theme.card, borderColor: theme.border },
+        pressed && styles.pressed,
+        style,
+      ]}
     >
-      <Image
-        accessible={false}
-        source={{ uri: expense.photoUrl }}
-        style={styles.image}
-        resizeMode="cover"
-      />
-
-      <View style={styles.details}>
-        <Text style={styles.name} numberOfLines={2} ellipsizeMode="tail">
-          {expense.name}
-        </Text>
-        <Text style={styles.info} numberOfLines={1}>
-          {expense.category} · {expense.date}
+      <View style={styles.photoContainer}>
+        <Image
+          accessible={false}
+          source={{ uri: expense.photoUrl }}
+          style={[styles.photo, { backgroundColor: theme.card }]}
+          resizeMode="cover"
+        />
+        <Text
+          style={[styles.badge, { backgroundColor: theme.primary, color: theme.onPrimary }]}
+        >
+          {expense.category}
         </Text>
       </View>
 
-      <Text style={styles.amount} numberOfLines={1}>
-        {amountLabel}
-      </Text>
-      <Text accessible={false} style={styles.chevron}>
-        ›
-      </Text>
+      <View style={styles.content}>
+        <Text style={[styles.name, { color: theme.text }]}>{expense.name}</Text>
+        <View style={styles.details}>
+          <Text style={[styles.info, { color: theme.muted }]}>{expense.category}</Text>
+          <Text style={[styles.info, { color: theme.muted }]}>{expense.date}</Text>
+        </View>
+        <View style={styles.footer}>
+          <Text style={[styles.amount, { color: theme.text }]}>{amountLabel}</Text>
+          <Text accessible={false} style={[styles.chevron, { color: theme.muted }]}>
+            ›
+          </Text>
+        </View>
+      </View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'stretch',
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 14,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    borderColor: '#E5E5E5',
+    borderRadius: Radius.md,
+    borderCurve: 'continuous',
     borderWidth: StyleSheet.hairlineWidth,
-  },
-  pressed: {
-    opacity: 0.6,
-  },
-  image: {
-    width: 64,
-    height: 64,
-    flexShrink: 0,
-    borderRadius: 8,
-    backgroundColor: '#F2F2F2',
-  },
-  details: {
-    flex: 1,
     minWidth: 0,
-    gap: 4,
   },
-  name: {
-    color: '#333333',
-    fontSize: 15,
-    fontWeight: '700',
+  pressed: { opacity: 0.6 },
+  photoContainer: {
+    borderTopLeftRadius: Radius.md,
+    borderTopRightRadius: Radius.md,
+    overflow: 'hidden',
   },
-  info: {
-    color: '#737373',
-    fontSize: 12,
+  photo: { width: '100%', aspectRatio: 16 / 9 },
+  badge: {
+    position: 'absolute',
+    top: Spacing.sm,
+    right: Spacing.sm,
+    maxWidth: '90%',
+    borderRadius: Radius.pill,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    fontSize: FontSize.small,
+    fontWeight: '600',
   },
+  content: { padding: Spacing.md, gap: Spacing.sm },
+  name: { fontSize: FontSize.body, fontWeight: '700' },
+  details: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
+  info: { fontSize: FontSize.small, flexShrink: 1 },
+  footer: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   amount: {
-    flexShrink: 0,
-    color: '#333333',
-    fontSize: 15,
+    flex: 1,
+    fontSize: FontSize.title,
     fontWeight: '600',
     fontVariant: ['tabular-nums'],
-    textAlign: 'right',
   },
-  chevron: {
-    color: '#8A8A8A',
-    fontSize: 24,
-    fontWeight: '400',
-  },
+  chevron: { fontSize: FontSize.hero },
 });
