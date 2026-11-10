@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ScrollView, Text, View, StyleSheet, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -10,8 +11,11 @@ export default function HomeScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
+  const [gridWidth, setGridWidth] = useState<number | null>(null);
   const columns = width >= 900 ? 3 : width >= 600 ? 2 : 1;
-  const cardWidth = (width - 2 * Spacing.md - (columns - 1) * Spacing.md) / columns;
+  // The measured grid width also accounts for space used by a web scrollbar.
+  const contentWidth = gridWidth ?? Math.max(0, width - 2 * Spacing.md);
+  const cardWidth = Math.max(0, (contentWidth - (columns - 1) * Spacing.md) / columns);
   const totalSpending = expenses.reduce((total, expense) => total + expense.amount, 0);
   const categoryCount = new Set(expenses.map(expense => expense.category)).size;
   const average = expenses.length ? totalSpending / expenses.length : 0;
@@ -59,7 +63,10 @@ export default function HomeScreen() {
         </Text>
       </View>
 
-      <View style={styles.grid}>
+      <View
+        style={styles.grid}
+        onLayout={({ nativeEvent }) => setGridWidth(nativeEvent.layout.width)}
+      >
         {expenses.map((expense) => (
           <ExpenseCard key={expense.id} expense={expense} style={{ width: cardWidth }} />
         ))}
@@ -105,5 +112,5 @@ const styles = StyleSheet.create({
   },
   sectionTitle: { fontSize: FontSize.title, fontWeight: '700', flexShrink: 1 },
   expenseCount: { fontSize: FontSize.small },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-start', gap: Spacing.md },
+  grid: { width: '100%', flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-start', gap: Spacing.md },
 });
