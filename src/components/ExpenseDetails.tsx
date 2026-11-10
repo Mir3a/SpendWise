@@ -32,7 +32,7 @@ export default function ExpenseDetails({ expense }: ExpenseDetailsProps) {
           {expense.name}
         </Text>
 
-        <View style={[styles.infoCard, { backgroundColor: theme.card }]}>
+        <View style={[styles.infoCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <View style={styles.row}>
             <Text style={[styles.label, { color: theme.muted }]}>Amount</Text>
             <Text style={[styles.value, styles.amount, { color: theme.text }]} selectable>
@@ -50,28 +50,38 @@ export default function ExpenseDetails({ expense }: ExpenseDetailsProps) {
           {description ? (
             <View style={styles.row}>
               <Text style={[styles.label, { color: theme.muted }]}>Description</Text>
-              <Text style={[styles.value, { color: theme.text }]} selectable>{description}</Text>
+              <Text style={[styles.value, styles.description, { color: theme.text }]} selectable>
+                {description}
+              </Text>
             </View>
           ) : null}
           <View style={styles.row}>
             <Text style={[styles.label, { color: theme.muted }]}>Expense ID</Text>
-            <Text style={[styles.value, styles.id, { color: theme.muted }]} selectable>
+            <Text style={[styles.value, styles.id, { color: theme.text }]} selectable>
               {expense.id}
             </Text>
           </View>
         </View>
 
         {receiptPhotoUrl ? (
-          <View style={styles.receiptSection}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]} accessibilityRole="header">
+          <View
+            style={[
+              styles.infoCard,
+              styles.row,
+              { backgroundColor: theme.card, borderColor: theme.border },
+            ]}
+          >
+            <Text style={[styles.label, { color: theme.muted }]}>
               Receipt
             </Text>
-            <Image
-              source={{ uri: receiptPhotoUrl }}
-              style={[styles.receiptImage, { backgroundColor: theme.card }]}
-              resizeMode="contain"
-              accessibilityLabel={'Receipt for ' + expense.name}
-            />
+            <View style={styles.receiptValue}>
+              <Image
+                source={{ uri: receiptPhotoUrl }}
+                style={[styles.receiptImage, { backgroundColor: theme.card }]}
+                resizeMode="contain"
+                accessibilityLabel={'Receipt for ' + expense.name}
+              />
+            </View>
           </View>
         ) : null}
       </View>
@@ -85,13 +95,19 @@ const styles = StyleSheet.create({
   body: { width: '100%', maxWidth: 600, alignSelf: 'center', gap: Spacing.lg },
   image: { width: '100%', aspectRatio: 16 / 9, borderRadius: Radius.md, borderCurve: 'continuous' },
   name: { fontSize: FontSize.hero, fontWeight: '700' },
-  infoCard: { padding: Spacing.md, gap: Spacing.lg, borderRadius: Radius.md, borderCurve: 'continuous' },
+  infoCard: {
+    padding: Spacing.md,
+    gap: Spacing.lg,
+    borderRadius: Radius.md,
+    borderCurve: 'continuous',
+    borderWidth: StyleSheet.hairlineWidth,
+  },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: Spacing.md },
   label: { fontSize: FontSize.small, maxWidth: '40%', flexShrink: 1 },
   value: { flex: 1, flexShrink: 1, minWidth: 0, fontSize: FontSize.body, textAlign: 'right' },
   amount: { fontSize: FontSize.hero, fontWeight: '700', fontVariant: ['tabular-nums'] },
   id: { fontSize: FontSize.small },
-  receiptSection: { gap: Spacing.sm },
-  sectionTitle: { fontSize: FontSize.title, fontWeight: '600' },
+  description: { textAlign: 'left' },
+  receiptValue: { flex: 1, flexShrink: 1, minWidth: 0 },
   receiptImage: { width: '100%', aspectRatio: 3 / 4, borderRadius: Radius.md, borderCurve: 'continuous' },
 });
