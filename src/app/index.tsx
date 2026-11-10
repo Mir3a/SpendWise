@@ -1,96 +1,112 @@
-import { ScrollView, Text, View, StyleSheet } from 'react-native';
+import { ScrollView, Text, View, StyleSheet, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import ExpenseCard from '@/components/ExpenseCard';
+import { FontSize, Radius, Spacing } from '@/constants/theme';
 import { expenses } from '@/data/expenses';
+import { useTheme } from '@/hooks/use-theme';
+import type { ExpenseCategory } from '@/types';
 
 export default function HomeScreen() {
+  const theme = useTheme();
+  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const columns = width >= 900 ? 3 : width >= 600 ? 2 : 1;
+  const cardWidth = (width - 2 * Spacing.md - (columns - 1) * Spacing.md) / columns;
   const totalSpending = expenses.reduce((total, expense) => total + expense.amount, 0);
+  const categories = expenses.reduce(
+    (unique, expense) => unique.add(expense.category),
+    new Set<ExpenseCategory>(),
+  );
+  const average = expenses.length ? totalSpending / expenses.length : 0;
+  const summaries = [
+    { label: 'Expenses', value: String(expenses.length) },
+    { label: 'Average (KM)', value: average.toFixed(2) },
+    { label: 'Categories', value: String(categories.size) },
+  ];
 
   return (
     <ScrollView
-      style={styles.screen}
-      contentContainerStyle={styles.content}
+      style={[styles.screen, { backgroundColor: theme.background }]}
+      contentContainerStyle={[styles.content, { paddingBottom: Spacing.md + insets.bottom }]}
       contentInsetAdjustmentBehavior="automatic"
     >
       <View style={styles.header}>
-        <Text style={styles.title} accessibilityRole="header">SpendWise</Text>
-        <Text style={styles.subtitle}>Your spending overview</Text>
+        <Text style={[styles.subtitle, { color: theme.muted }]}>Your spending overview</Text>
       </View>
 
-      <View style={styles.totalCard}>
-        <Text style={styles.totalLabel}>Total Spending</Text>
-        <Text style={styles.totalAmount}>{totalSpending.toFixed(2)} KM</Text>
+      <View style={[styles.totalCard, { backgroundColor: theme.primary }]}>
+        <Text style={[styles.totalLabel, { color: theme.onPrimary }]}>Total Spending</Text>
+        <Text style={[styles.totalAmount, { color: theme.onPrimary }]} selectable>
+          {totalSpending.toFixed(2)} KM
+        </Text>
+      </View>
+
+      <View style={styles.summaryRow}>
+        {summaries.map(({ label, value }) => (
+          <View
+            key={label}
+            style={[styles.summaryBox, { backgroundColor: theme.card, borderColor: theme.border }]}
+          >
+            <Text style={[styles.summaryValue, { color: theme.text }]}>{value}</Text>
+            <Text style={[styles.summaryLabel, { color: theme.muted }]}>{label}</Text>
+          </View>
+        ))}
       </View>
 
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle} accessibilityRole="header">
+        <Text style={[styles.sectionTitle, { color: theme.text }]} accessibilityRole="header">
           Recent Expenses
         </Text>
-        <Text style={styles.expenseCount}>{expenses.length} expenses</Text>
+        <Text style={[styles.expenseCount, { color: theme.muted }]}>
+          {expenses.length} expenses
+        </Text>
       </View>
 
-      {expenses.map((expense) => (
-        <ExpenseCard key={expense.id} expense={expense} />
-      ))}
+      <View style={styles.grid}>
+        {expenses.map((expense) => (
+          <ExpenseCard key={expense.id} expense={expense} style={{ width: cardWidth }} />
+        ))}
+      </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: '#F7F7F7',
-  },
-  content: {
-    padding: 16,
-    gap: 12,
-    paddingBottom: 32,
-  },
-  header: {
-    gap: 4,
-    paddingVertical: 8,
-  },
-  title: {
-    color: '#262626',
-    fontSize: 28,
-    fontWeight: '700',
-  },
-  subtitle: {
-    color: '#737373',
-    fontSize: 15,
-  },
+  screen: { flex: 1 },
+  content: { padding: Spacing.md, gap: Spacing.md },
+  header: { gap: Spacing.xs, paddingVertical: Spacing.sm },
+  subtitle: { fontSize: FontSize.body },
   totalCard: {
-    backgroundColor: '#292929',
-    borderRadius: 16,
-    padding: 20,
-    gap: 8,
+    borderRadius: Radius.md,
+    borderCurve: 'continuous',
+    padding: Spacing.lg,
+    gap: Spacing.sm,
   },
-  totalLabel: {
-    color: '#FFFFFF',
-    fontSize: 15,
+  totalLabel: { fontSize: FontSize.body },
+  totalAmount: { fontSize: FontSize.hero, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  summaryRow: { flexDirection: 'row', gap: Spacing.sm },
+  summaryBox: {
+    flex: 1,
+    minWidth: 0,
+    padding: Spacing.sm,
+    gap: Spacing.xs,
+    borderRadius: Radius.md,
+    borderCurve: 'continuous',
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
   },
-  totalAmount: {
-    color: '#FFFFFF',
-    fontSize: 32,
-    fontWeight: '700',
-    fontVariant: ['tabular-nums'],
-  },
+  summaryValue: { fontSize: FontSize.title, fontWeight: '700', textAlign: 'center' },
+  summaryLabel: { fontSize: FontSize.small, textAlign: 'center' },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     flexWrap: 'wrap',
-    gap: 8,
-    paddingTop: 8,
+    gap: Spacing.sm,
+    paddingTop: Spacing.sm,
   },
-  sectionTitle: {
-    color: '#262626',
-    fontSize: 20,
-    fontWeight: '700',
-    flexShrink: 1,
-  },
-  expenseCount: {
-    color: '#737373',
-    fontSize: 14,
-  },
+  sectionTitle: { fontSize: FontSize.title, fontWeight: '700', flexShrink: 1 },
+  expenseCount: { fontSize: FontSize.small },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-start', gap: Spacing.md },
 });
