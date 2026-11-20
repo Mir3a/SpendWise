@@ -1,56 +1,87 @@
-# Welcome to your Expo app 👋
+# SpendWise — Personal Expense Tracker
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+SpendWise is a cross-platform mobile application that helps users manage their personal finances by recording expenses, organizing them into categories, and monitoring their spending. Users can add, view, edit, and delete expenses, attach receipt photographs, and access their personal financial records through a secure account.
 
-## Get started
+## Technologies
 
-1. Install dependencies
+- React Native
+- Expo
+- TypeScript
+- Expo Router
+- React Hooks
+- Supabase (planned)
+
+## Getting Started
+
+1. Clone the repository, or open your existing project folder. If cloning:
+
+   ```bash
+   git clone https://github.com/Mir3a/spendwise.git SpendWise
+   cd SpendWise
+   ```
+
+2. Install dependencies from the project folder:
 
    ```bash
    npm install
    ```
 
-2. Start the app
+3. Start the Expo development server:
 
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+4. Open the application using Expo Go by scanning the displayed QR code, or choose another supported Expo development target, such as the web browser or a development build.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+To run the development checks:
 
 ```bash
-npm run reset-project
+npx tsc --noEmit
+npm run lint
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+## Features
 
-### Other setup steps
+- [x] Expense TypeScript type
+- [x] Mock expense data
+- [x] ExpenseCard component
+- [x] ExpenseDetails component
+- [x] Home Screen expense list
+- [x] Total Spending calculation
+- [x] Summary statistics: expense count, average expense amount, and unique category count
+- [x] Light and Dark Mode themes
+- [x] Automatic system theme detection
+- [x] Responsive expense card grid
+- [x] Responsive ExpenseDetails layout
+- [ ] Navigation to expense details
+- [ ] Add new expenses
+- [ ] Edit and delete expenses
+- [ ] Camera/gallery receipt attachment
+- [ ] User authentication
+- [ ] Supabase database integration
+- [ ] Persistent expense storage
+- [ ] Home, Expenses and Profile navigation
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+ExpenseDetails is an implemented reusable component, not a navigable details screen. ExpenseCard presses currently log the selected expense ID.
 
-## Learn more
+## Project Structure
 
-To learn more about developing your project with Expo, look at the following resources:
+```text
+src/
+├── app/
+│   ├── index.tsx                 # Home Screen, summaries, and responsive expense grid
+│   └── _layout.tsx               # Themed Expo Router Stack and status bar
+├── components/
+│   ├── ExpenseCard.tsx           # Themed expense card with category badge
+│   └── ExpenseDetails.tsx        # Responsive expense information component
+├── constants/
+│   └── theme.ts                  # Colors, spacing, font sizes, and corner radii
+├── hooks/
+│   └── use-theme.ts              # System appearance-based theme selection
+├── data/
+│   └── expenses.ts               # Local mock expenses
+└── types.ts                      # Expense and ExpenseCategory types
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
 
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
