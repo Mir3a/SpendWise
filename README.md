@@ -67,13 +67,9 @@ ExpenseDetails is an implemented reusable component, not a navigable details scr
 
 ## Screenshots
 
-### Light mode
-
-![Home in light mode](docs/home-light.png)
-
-### Dark mode
-
-![Home in dark mode](docs/home-dark.png)
+| Light mode | Dark mode |
+| :---: | :---: |
+| <img src="docs/home-light.png" alt="Home in light mode" width="280"> | <img src="docs/home-dark.png" alt="Home in dark mode" width="280"> |
 
 ## Project Structure
 
