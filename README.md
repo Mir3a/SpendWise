@@ -65,6 +65,16 @@ npm run lint
 
 ExpenseDetails is an implemented reusable component, not a navigable details screen. ExpenseCard presses currently log the selected expense ID.
 
+## Screenshots
+
+### Light mode
+
+![Home in light mode](docs/home-light.png)
+
+### Dark mode
+
+![Home in dark mode](docs/home-dark.png)
+
 ## Project Structure
 
 ```text
