@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -34,10 +34,18 @@ export default function HomeScreen() {
   const [status, setStatus] = useState<LoadStatus>('loading');
   const [attempt, setAttempt] = useState(0);
   const [errorMessage, setErrorMessage] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+  const refreshInFlight = useRef(false);
+  const isScreenMounted = useRef(false);
 
   useEffect(() => {
+    isScreenMounted.current = true;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Hydration requires a post-mount layout pass.
     setHasMounted(true);
+
+    return () => {
+      isScreenMounted.current = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -66,6 +74,24 @@ export default function HomeScreen() {
       ignore = true;
     };
   }, [attempt]);
+
+  async function refresh() {
+    // A ref blocks repeated pulls even before the refreshing state re-renders.
+    if (!isScreenMounted.current || refreshInFlight.current) return;
+
+    refreshInFlight.current = true;
+    setRefreshing(true);
+
+    try {
+      const updatedExpenses = await fetchExpenses();
+      if (isScreenMounted.current) setExpenses(updatedExpenses);
+    } catch (error) {
+      console.error('Could not refresh expenses', error);
+    } finally {
+      refreshInFlight.current = false;
+      if (isScreenMounted.current) setRefreshing(false);
+    }
+  }
 
   // Keep the server and first browser render identical before using viewport dimensions.
   const columns = !hasMounted ? 1 : width >= 900 ? 3 : width >= 600 ? 2 : 1;
@@ -134,6 +160,8 @@ export default function HomeScreen() {
     <FlatList
       key={columns}
       data={expenses}
+      refreshing={refreshing}
+      onRefresh={refresh}
       numColumns={columns}
       columnWrapperStyle={columns > 1 ? styles.columns : undefined}
       keyExtractor={(expense) => expense.id}
