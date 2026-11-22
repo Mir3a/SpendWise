@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { FlatList, Platform, Text, View, StyleSheet, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import EmptyState from '@/components/EmptyState';
 import ExpenseCard from '@/components/ExpenseCard';
 import { FontSize, Radius, Spacing } from '@/constants/theme';
 import { expenses } from '@/data/expenses';
@@ -90,13 +91,16 @@ export default function HomeScreen() {
       }
       ListHeaderComponentStyle={styles.listHeader}
       ItemSeparatorComponent={ExpenseSeparator}
+      ListEmptyComponent={
+        <EmptyState title="No expenses yet" message="Your expenses will appear here." />
+      }
     />
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  content: { padding: Spacing.md },
+  content: { flexGrow: 1, padding: Spacing.md },
   dashboard: { gap: Spacing.md },
   listHeader: { marginBottom: Spacing.md },
   separator: { height: Spacing.md },
