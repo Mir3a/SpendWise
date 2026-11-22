@@ -1,12 +1,24 @@
 import { useEffect, useState } from 'react';
-import { FlatList, Platform, Text, View, StyleSheet, useWindowDimensions } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  Platform,
+  Pressable,
+  Text,
+  View,
+  StyleSheet,
+  useWindowDimensions,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import EmptyState from '@/components/EmptyState';
 import ExpenseCard from '@/components/ExpenseCard';
 import { FontSize, Radius, Spacing } from '@/constants/theme';
-import { expenses } from '@/data/expenses';
+import { fetchExpenses } from '@/data/api';
 import { useTheme } from '@/hooks/use-theme';
+import type { Expense } from '@/types';
+
+type LoadStatus = 'loading' | 'error' | 'ready';
 
 function ExpenseSeparator() {
   return <View style={styles.separator} />;
@@ -18,11 +30,42 @@ export default function HomeScreen() {
   const { width } = useWindowDimensions();
   const [hasMounted, setHasMounted] = useState(Platform.OS !== 'web');
   const [contentWidth, setContentWidth] = useState<number | null>(null);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [status, setStatus] = useState<LoadStatus>('loading');
+  const [attempt, setAttempt] = useState(0);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Hydration requires a post-mount layout pass.
     setHasMounted(true);
   }, []);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadExpenses() {
+      try {
+        const result = await fetchExpenses();
+        if (ignore) return;
+
+        setExpenses(result);
+        setStatus('ready');
+      } catch (error) {
+        if (ignore) return;
+
+        setErrorMessage(
+          error instanceof Error && error.message ? error.message : 'Could not load expenses'
+        );
+        setStatus('error');
+      }
+    }
+
+    void loadExpenses();
+
+    return () => {
+      ignore = true;
+    };
+  }, [attempt]);
 
   // Keep the server and first browser render identical before using viewport dimensions.
   const columns = !hasMounted ? 1 : width >= 900 ? 3 : width >= 600 ? 2 : 1;
@@ -39,6 +82,53 @@ export default function HomeScreen() {
     { label: 'Average (KM)', value: average.toFixed(2) },
     { label: 'Categories', value: String(categoryCount) },
   ];
+
+  if (status === 'loading') {
+    return (
+      <View
+        style={[
+          styles.screen,
+          styles.stateContainer,
+          { backgroundColor: theme.background, paddingBottom: Spacing.md + insets.bottom },
+        ]}
+        accessibilityState={{ busy: true }}
+      >
+        <ActivityIndicator size="large" color={theme.primary} accessibilityLabel="Loading expenses" />
+        <Text style={[styles.statusText, { color: theme.muted }]}>Loading expenses...</Text>
+      </View>
+    );
+  }
+
+  if (status === 'error') {
+    return (
+      <View
+        style={[
+          styles.screen,
+          styles.stateContainer,
+          { backgroundColor: theme.background, paddingBottom: Spacing.md + insets.bottom },
+        ]}
+      >
+        <Text style={[styles.statusText, { color: theme.text }]} accessibilityRole="alert">
+          {errorMessage}
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => {
+            setStatus('loading');
+            setErrorMessage('');
+            setAttempt(current => current + 1);
+          }}
+          style={({ pressed }) => [
+            styles.retryButton,
+            { backgroundColor: theme.primary },
+            pressed && styles.pressed,
+          ]}
+        >
+          <Text style={[styles.retryLabel, { color: theme.onPrimary }]}>Try again</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   return (
     <FlatList
@@ -100,6 +190,23 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
+  stateContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.md,
+    padding: Spacing.lg,
+  },
+  statusText: { fontSize: FontSize.body, textAlign: 'center' },
+  retryButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.md,
+    borderCurve: 'continuous',
+  },
+  retryLabel: { fontSize: FontSize.body, fontWeight: '700' },
+  pressed: { opacity: 0.6 },
   content: { flexGrow: 1, padding: Spacing.md },
   dashboard: { gap: Spacing.md },
   listHeader: { marginBottom: Spacing.md },
