@@ -1,4 +1,5 @@
-import { FlatList, Text, View, StyleSheet } from 'react-native';
+import { useEffect, useState } from 'react';
+import { FlatList, Platform, Text, View, StyleSheet, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import ExpenseCard from '@/components/ExpenseCard';
@@ -13,6 +14,22 @@ function ExpenseSeparator() {
 export default function HomeScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const [hasMounted, setHasMounted] = useState(Platform.OS !== 'web');
+  const [contentWidth, setContentWidth] = useState<number | null>(null);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Hydration requires a post-mount layout pass.
+    setHasMounted(true);
+  }, []);
+
+  // Keep the server and first browser render identical before using viewport dimensions.
+  const columns = !hasMounted ? 1 : width >= 900 ? 3 : width >= 600 ? 2 : 1;
+  // Measure inside the list padding to account for a web scrollbar's width.
+  const availableWidth = contentWidth ?? Math.max(0, width - 2 * Spacing.md);
+  const cardWidth = !hasMounted
+    ? '100%'
+    : Math.max(0, (availableWidth - (columns - 1) * Spacing.md) / columns);
   const totalSpending = expenses.reduce((total, expense) => total + expense.amount, 0);
   const categoryCount = new Set(expenses.map(expense => expense.category)).size;
   const average = expenses.length ? totalSpending / expenses.length : 0;
@@ -24,14 +41,20 @@ export default function HomeScreen() {
 
   return (
     <FlatList
+      key={columns}
       data={expenses}
+      numColumns={columns}
+      columnWrapperStyle={columns > 1 ? styles.columns : undefined}
       keyExtractor={(expense) => expense.id}
-      renderItem={({ item }) => <ExpenseCard expense={item} style={styles.expenseCard} />}
+      renderItem={({ item }) => <ExpenseCard expense={item} style={{ width: cardWidth }} />}
       style={[styles.screen, { backgroundColor: theme.background }]}
       contentContainerStyle={[styles.content, { paddingBottom: Spacing.md + insets.bottom }]}
       contentInsetAdjustmentBehavior="automatic"
       ListHeaderComponent={
-        <View style={styles.dashboard}>
+        <View
+          style={styles.dashboard}
+          onLayout={({ nativeEvent }) => setContentWidth(nativeEvent.layout.width)}
+        >
           <View style={styles.header}>
             <Text style={[styles.subtitle, { color: theme.muted }]}>Your spending overview</Text>
           </View>
@@ -77,7 +100,7 @@ const styles = StyleSheet.create({
   dashboard: { gap: Spacing.md },
   listHeader: { marginBottom: Spacing.md },
   separator: { height: Spacing.md },
-  expenseCard: { width: '100%' },
+  columns: { gap: Spacing.md },
   header: { gap: Spacing.xs, paddingVertical: Spacing.sm },
   subtitle: { fontSize: FontSize.body },
   totalCard: {
