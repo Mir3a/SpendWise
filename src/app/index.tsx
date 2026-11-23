@@ -4,6 +4,7 @@ import {
   FlatList,
   Platform,
   Pressable,
+  ScrollView,
   Text,
   View,
   StyleSheet,
@@ -13,12 +14,25 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import EmptyState from '@/components/EmptyState';
 import ExpenseCard from '@/components/ExpenseCard';
+import FilterChip from '@/components/FilterChip';
 import { FontSize, Radius, Spacing } from '@/constants/theme';
 import { fetchExpenses } from '@/data/api';
 import { useTheme } from '@/hooks/use-theme';
-import type { Expense } from '@/types';
+import type { Expense, ExpenseCategory } from '@/types';
 
 type LoadStatus = 'loading' | 'error' | 'ready';
+type ExpenseFilter = ExpenseCategory | 'All';
+
+const expenseFilters: ExpenseFilter[] = [
+  'All',
+  'Groceries',
+  'Food',
+  'Transport',
+  'Shopping',
+  'Bills',
+  'Entertainment',
+  'Other',
+];
 
 function ExpenseSeparator() {
   return <View style={styles.separator} />;
@@ -35,6 +49,7 @@ export default function HomeScreen() {
   const [attempt, setAttempt] = useState(0);
   const [errorMessage, setErrorMessage] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [filter, setFilter] = useState<ExpenseFilter>('All');
   const refreshInFlight = useRef(false);
   const isScreenMounted = useRef(false);
 
@@ -100,6 +115,9 @@ export default function HomeScreen() {
   const cardWidth = !hasMounted
     ? '100%'
     : Math.max(0, (availableWidth - (columns - 1) * Spacing.md) / columns);
+  const visibleExpenses = filter === 'All'
+    ? expenses
+    : expenses.filter(expense => expense.category === filter);
   const totalSpending = expenses.reduce((total, expense) => total + expense.amount, 0);
   const categoryCount = new Set(expenses.map(expense => expense.category)).size;
   const average = expenses.length ? totalSpending / expenses.length : 0;
@@ -159,7 +177,7 @@ export default function HomeScreen() {
   return (
     <FlatList
       key={columns}
-      data={expenses}
+      data={visibleExpenses}
       refreshing={refreshing}
       onRefresh={refresh}
       numColumns={columns}
@@ -197,12 +215,28 @@ export default function HomeScreen() {
             ))}
           </View>
 
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.filters}
+            contentContainerStyle={styles.filterContent}
+          >
+            {expenseFilters.map(category => (
+              <FilterChip
+                key={category}
+                label={category}
+                selected={filter === category}
+                onPress={() => setFilter(category)}
+              />
+            ))}
+          </ScrollView>
+
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme.text }]} accessibilityRole="header">
               Recent Expenses
             </Text>
             <Text style={[styles.expenseCount, { color: theme.muted }]}>
-              {expenses.length} expenses
+              {visibleExpenses.length} {visibleExpenses.length === 1 ? 'expense' : 'expenses'}
             </Text>
           </View>
         </View>
@@ -210,7 +244,10 @@ export default function HomeScreen() {
       ListHeaderComponentStyle={styles.listHeader}
       ItemSeparatorComponent={ExpenseSeparator}
       ListEmptyComponent={
-        <EmptyState title="No expenses yet" message="Your expenses will appear here." />
+        <EmptyState
+          title={filter === 'All' ? 'No expenses yet' : `No ${filter} expenses`}
+          message={filter === 'All' ? 'Your expenses will appear here.' : 'Choose another category.'}
+        />
       }
     />
   );
@@ -240,6 +277,8 @@ const styles = StyleSheet.create({
   listHeader: { marginBottom: Spacing.md },
   separator: { height: Spacing.md },
   columns: { gap: Spacing.md },
+  filters: { flexGrow: 0 },
+  filterContent: { gap: Spacing.sm, paddingVertical: Spacing.xs },
   header: { gap: Spacing.xs, paddingVertical: Spacing.sm },
   subtitle: { fontSize: FontSize.body },
   totalCard: {
